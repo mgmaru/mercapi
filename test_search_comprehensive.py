@@ -1,12 +1,6 @@
 """
 Comprehensive test for Mercari search API responses.
-Tests all possible field combinations including:
-- Regular Mercari items (ITEM_TYPE_MERCARI)
-- Shop items (ITEM_TYPE_BEYOND)
-- Items with auctions
-- Items with/without brands
-- Items with/without sizes
-- Null value handling
+Prints EVERY field from the search results JSON, including null and empty values.
 """
 import asyncio
 import sys
@@ -15,326 +9,204 @@ from mercapi import Mercapi
 
 def print_section(title):
     """Print a formatted section header."""
-    print(f"\n{'='*60}")
+    print(f"\n{'='*80}")
     print(f" {title}")
-    print('='*60)
+    print('='*80)
 
 
-def validate_item_fields(item, item_data):
-    """Validate that all expected fields are correctly parsed."""
-    errors = []
+def print_item_complete(item, index):
+    """Print every single field from a SearchResultItem."""
+    print(f"\n{'─'*80}")
+    print(f"ITEM #{index}: {item.name}")
+    print('─'*80)
 
-    # Required fields
-    if item.id_ != item_data['id']:
-        errors.append(f"ID mismatch: {item.id_} != {item_data['id']}")
-    if item.name != item_data['name']:
-        errors.append(f"Name mismatch")
-    if str(item.price) != str(item_data['price']):
-        errors.append(f"Price mismatch: {item.price} != {item_data['price']}")
+    # Top-level required fields
+    print(f"\n📌 REQUIRED FIELDS:")
+    print(f"  id:                    {repr(item.id_)}")
+    print(f"  name:                  {repr(item.name)}")
+    print(f"  price:                 {repr(item.price)}")
 
-    # Optional fields with null handling
-    if item_data.get('itemBrand') is not None:
-        if item.item_brand is None:
-            errors.append(f"Brand should not be None")
-        elif item.item_brand.id_ != item_data['itemBrand']['id']:
-            errors.append(f"Brand ID mismatch")
-    else:
-        if item.item_brand is not None:
-            errors.append(f"Brand should be None but got {item.item_brand}")
+    # Top-level optional fields (in order from the JSON)
+    print(f"\n📋 TOP-LEVEL OPTIONAL FIELDS:")
+    print(f"  sellerId:              {repr(item.seller_id)}")
+    print(f"  buyerId:               {repr(item.buyer_id)}")
+    print(f"  status:                {repr(item.status)}")
+    print(f"  created:               {repr(item.created)}")
+    print(f"  updated:               {repr(item.updated)}")
 
-    # Item size handling
-    if item_data.get('itemSize') is not None:
-        if item.item_size is None:
-            errors.append(f"Item size should not be None")
-        elif item.item_size.id_ != item_data['itemSize']['id']:
-            errors.append(f"Item size ID mismatch")
-    else:
-        if item.item_size is not None:
-            errors.append(f"Item size should be None but got {item.item_size}")
-
-    # Item sizes list handling
-    if item_data.get('itemSizes'):
-        if not item.item_sizes:
-            errors.append(f"Item sizes should not be empty")
-        elif len(item.item_sizes) != len(item_data['itemSizes']):
-            errors.append(f"Item sizes count mismatch: {len(item.item_sizes)} != {len(item_data['itemSizes'])}")
-    else:
-        if item.item_sizes:
-            errors.append(f"Item sizes should be empty/None")
-
-    # Auction handling
-    if item_data.get('auction') is not None:
-        if item.auction is None:
-            errors.append(f"Auction should not be None")
+    # Thumbnails
+    print(f"\n📸 THUMBNAILS:")
+    if item.thumbnails is not None:
+        if item.thumbnails:
+            print(f"  thumbnails (count):    {len(item.thumbnails)}")
+            for idx, thumb in enumerate(item.thumbnails):
+                print(f"    [{idx}] {thumb}")
         else:
-            # Validate auction fields
-            auction_data = item_data['auction']
-            if auction_data.get('bidDeadline') and item.auction.bid_deadline != auction_data['bidDeadline']:
-                errors.append(f"Auction bid_deadline mismatch")
-            if auction_data.get('highestBid') and item.auction.highest_bid != auction_data['highestBid']:
-                errors.append(f"Auction highest_bid mismatch")
+            print(f"  thumbnails:            [] (empty array)")
     else:
-        if item.auction is not None:
-            errors.append(f"Auction should be None but got {item.auction}")
+        print(f"  thumbnails:            None")
 
-    # Shop handling
-    if item_data.get('shop') is not None:
-        if item.shop is None:
-            errors.append(f"Shop should not be None")
-        elif item.shop.id_ != item_data['shop']['id']:
-            errors.append(f"Shop ID mismatch: {item.shop.id_} != {item_data['shop']['id']}")
+    # Item metadata
+    print(f"\n🏷️  ITEM METADATA:")
+    print(f"  itemType:              {repr(item.item_type)}")
+    print(f"  itemConditionId:       {repr(item.item_condition_id)}")
+    print(f"  shippingPayerId:       {repr(item.shipping_payer_id)}")
+    print(f"  shippingMethodId:      {repr(item.shipping_method_id)}")
+    print(f"  categoryId:            {repr(item.category_id)}")
+    print(f"  isNoPrice:             {repr(item.is_no_price)}")
+    print(f"  title:                 {repr(item.title)}")
+    print(f"  isLiked:               {repr(item.is_liked)}")
+    print(f"  shopName:              {repr(item.shop_name)}")
+
+    # Item sizes (list)
+    print(f"\n📏 ITEM SIZES (itemSizes):")
+    if item.item_sizes is not None:
+        if item.item_sizes:
+            print(f"  itemSizes (count):     {len(item.item_sizes)}")
+            for idx, size in enumerate(item.item_sizes):
+                print(f"    [{idx}] ItemSize:")
+                print(f"        id:            {repr(size.id_)}")
+                print(f"        name:          {repr(size.name)}")
+        else:
+            print(f"  itemSizes:             [] (empty array)")
     else:
-        if item.shop is not None:
-            errors.append(f"Shop should be None but got {item.shop}")
+        print(f"  itemSizes:             None")
 
-    # Photos handling
-    if item_data.get('photos'):
-        if not item.photos:
-            errors.append(f"Photos should not be empty")
-        elif len(item.photos) != len(item_data['photos']):
-            errors.append(f"Photos count mismatch")
-
-    return errors
-
-
-async def test_search_variations():
-    """Test various search queries to cover different field combinations."""
-    api = Mercapi()
-
-    test_queries = [
-        ('Adidas', 'BACKLASH items - tests brands, sizes, auctions, shops'),
-    ]
-
-    all_stats = {
-        'total_items': 0,
-        'items_with_brand': 0,
-        'items_without_brand': 0,
-        'items_with_size': 0,
-        'items_without_size': 0,
-        'items_with_sizes_list': 0,
-        'items_with_auction': 0,
-        'items_with_shop': 0,
-        'mercari_type_items': 0,
-        'beyond_type_items': 0,
-        'validation_errors': []
-    }
-
-    for query, description in test_queries:
-        print_section(f"Testing: {query}")
-        print(f"Description: {description}\n")
-
-        try:
-            results = await api.search(query)
-
-            print(f"Found: {results.meta.num_found} items")
-            print(f"Retrieved: {len(results.items)} items")
-
-            # Analyze first page of results
-            for idx, item in enumerate(results.items[:120], 1):
-                all_stats['total_items'] += 1
-
-                # Item type
-                if item.item_type and 'MERCARI' in str(item.item_type):
-                    all_stats['mercari_type_items'] += 1
-                elif item.item_type and 'BEYOND' in str(item.item_type):
-                    all_stats['beyond_type_items'] += 1
-
-                # Brand stats
-                if item.item_brand:
-                    all_stats['items_with_brand'] += 1
-                else:
-                    all_stats['items_without_brand'] += 1
-
-                # Size stats
-                if item.item_size:
-                    all_stats['items_with_size'] += 1
-                else:
-                    all_stats['items_without_size'] += 1
-
-                if item.item_sizes:
-                    all_stats['items_with_sizes_list'] += 1
-
-                # Auction stats
-                if item.auction:
-                    all_stats['items_with_auction'] += 1
-                    print(f"  [{idx}] 🔨 AUCTION: {item.name[:50]}...")
-                    print(f"      Deadline: {item.auction.bid_deadline}")
-                    print(f"      Highest bid: ¥{item.auction.highest_bid}")
-
-                # Shop stats
-                if item.shop:
-                    all_stats['items_with_shop'] += 1
-                    print(f"  [{idx}] 🏪 SHOP: {item.name[:50]}...")
-                    print(f"      Shop ID: {item.shop.id_}")
-
-                # Print item details for first few items
-                if idx <= 3:
-                    print(f"  [{idx}] {item.name[:60]}")
-                    print(f"      Price: ¥{item.price}")
-                    print(f"      Brand: {item.item_brand.name if item.item_brand else 'None'}")
-                    print(f"      Size: {item.item_size.name if item.item_size else 'None'}")
-                    print(f"      Sizes: {[s.name for s in item.item_sizes] if item.item_sizes else '[]'}")
-                    print(f"      Photos: {len(item.photos) if item.photos else 0}")
-                    print(f"      Auction: {'Yes' if item.auction else 'No'}")
-                    print(f"      Shop: {'Yes' if item.shop else 'No'}")
-
-            print()
-
-        except Exception as e:
-            print(f"ERROR: {e}")
-            import traceback
-            traceback.print_exc()
-
-    # Print summary statistics
-    print_section("SUMMARY STATISTICS")
-    print(f"Total items analyzed: {all_stats['total_items']}")
-    print(f"\nItem Types:")
-    print(f"  - Regular Mercari items: {all_stats['mercari_type_items']}")
-    print(f"  - Beyond/Shop items: {all_stats['beyond_type_items']}")
-    print(f"\nBrand Coverage:")
-    print(f"  - Items WITH brand: {all_stats['items_with_brand']}")
-    print(f"  - Items WITHOUT brand (null): {all_stats['items_without_brand']}")
-    print(f"\nSize Coverage:")
-    print(f"  - Items WITH itemSize: {all_stats['items_with_size']}")
-    print(f"  - Items WITHOUT itemSize (null): {all_stats['items_without_size']}")
-    print(f"  - Items WITH itemSizes list: {all_stats['items_with_sizes_list']}")
-    print(f"\nSpecial Features:")
-    print(f"  - Items WITH auction: {all_stats['items_with_auction']}")
-    print(f"  - Items WITH shop: {all_stats['items_with_shop']}")
-
-    if all_stats['validation_errors']:
-        print_section("VALIDATION ERRORS")
-        for error in all_stats['validation_errors']:
-            print(f"  ❌ {error}")
+    # Item brand
+    print(f"\n🏷️  ITEM BRAND (itemBrand):")
+    if item.item_brand is not None:
+        print(f"  itemBrand:")
+        print(f"    id:                  {repr(item.item_brand.id_)}")
+        print(f"    name:                {repr(item.item_brand.name)}")
+        print(f"    subName:             {repr(item.item_brand.sub_name)}")
     else:
-        print_section("✅ ALL VALIDATIONS PASSED")
+        print(f"  itemBrand:             None")
 
-    # Coverage report
-    print_section("COVERAGE REPORT")
-    coverage_items = [
-        ("Null brand handling", all_stats['items_without_brand'] > 0),
-        ("Non-null brand handling", all_stats['items_with_brand'] > 0),
-        ("Null itemSize handling", all_stats['items_without_size'] > 0),
-        ("Non-null itemSize handling", all_stats['items_with_size'] > 0),
-        ("Empty itemSizes list", all_stats['items_without_size'] > 0),
-        ("Non-empty itemSizes list", all_stats['items_with_sizes_list'] > 0),
-        ("Auction items", all_stats['items_with_auction'] > 0),
-        ("Shop items", all_stats['items_with_shop'] > 0),
-        ("Regular items (no auction/shop)", (all_stats['total_items'] - all_stats['items_with_auction'] - all_stats['items_with_shop']) > 0),
-    ]
-
-    for feature, covered in coverage_items:
-        status = "✅" if covered else "⚠️"
-        print(f"  {status} {feature}")
-
-    print()
-
-
-async def test_field_access():
-    """Test accessing all possible fields without errors."""
-    print_section("FIELD ACCESS TEST")
-
-    api = Mercapi()
-    results = await api.search('isamu katayama backlash')
-
-    if not results.items:
-        print("No items found for testing")
-        return
-
-    item = results.items[0]
-
-    print("Testing field access (should not raise exceptions):\n")
-
-    fields_to_test = [
-        ('id_', lambda: item.id_),
-        ('name', lambda: item.name),
-        ('price', lambda: item.price),
-        ('status', lambda: item.status),
-        ('seller_id', lambda: item.seller_id),
-        ('created', lambda: item.created),
-        ('updated', lambda: item.updated),
-        ('thumbnails', lambda: item.thumbnails),
-        ('item_type', lambda: item.item_type),
-        ('item_condition_id', lambda: item.item_condition_id),
-        ('shipping_payer_id', lambda: item.shipping_payer_id),
-        ('shipping_method_id', lambda: item.shipping_method_id),
-        ('category_id', lambda: item.category_id),
-        ('is_no_price', lambda: item.is_no_price),
-        ('title', lambda: item.title),
-        ('is_liked', lambda: item.is_liked),
-        ('buyer_id', lambda: item.buyer_id),
-        ('shop_name', lambda: item.shop_name),
-        ('item_brand', lambda: item.item_brand),
-        ('item_size', lambda: item.item_size),
-        ('item_sizes', lambda: item.item_sizes),
-        ('item_promotions', lambda: item.item_promotions),
-        ('photos', lambda: item.photos),
-        ('auction', lambda: item.auction),
-        ('shop', lambda: item.shop),
-    ]
-
-    for field_name, accessor in fields_to_test:
-        try:
-            value = accessor()
-            value_str = str(value)[:50] if value is not None else 'None'
-            print(f"  ✅ {field_name:25} = {value_str}")
-        except Exception as e:
-            print(f"  ❌ {field_name:25} - ERROR: {e}")
-
-    # Test nested fields
-    print("\nTesting nested fields:")
-
-    if item.item_brand:
-        print(f"  ✅ item_brand.id_ = {item.item_brand.id_}")
-        print(f"  ✅ item_brand.name = {item.item_brand.name}")
-        print(f"  ✅ item_brand.sub_name = {item.item_brand.sub_name}")
+    # Item promotions
+    print(f"\n🎁 ITEM PROMOTIONS (itemPromotions):")
+    if item.item_promotions is not None:
+        if item.item_promotions:
+            print(f"  itemPromotions (count): {len(item.item_promotions)}")
+            for idx, promo in enumerate(item.item_promotions):
+                print(f"    [{idx}] {promo}")
+        else:
+            print(f"  itemPromotions:        [] (empty array)")
     else:
-        print(f"  ⚠️  item_brand is None (this is valid)")
+        print(f"  itemPromotions:        None")
 
-    if item.item_size:
-        print(f"  ✅ item_size.id_ = {item.item_size.id_}")
-        print(f"  ✅ item_size.name = {item.item_size.name}")
+    # Item size (single)
+    print(f"\n📏 ITEM SIZE (itemSize - single):")
+    if item.item_size is not None:
+        print(f"  itemSize:")
+        print(f"    id:                  {repr(item.item_size.id_)}")
+        print(f"    name:                {repr(item.item_size.name)}")
     else:
-        print(f"  ⚠️  item_size is None (this is valid)")
+        print(f"  itemSize:              None")
 
-    if item.auction:
-        print(f"  ✅ auction.id_ = {item.auction.id_}")
-        print(f"  ✅ auction.bid_deadline = {item.auction.bid_deadline}")
-        print(f"  ✅ auction.total_bid = {item.auction.total_bid}")
-        print(f"  ✅ auction.highest_bid = {item.auction.highest_bid}")
+    # Photos
+    print(f"\n📸 PHOTOS:")
+    if item.photos is not None:
+        if item.photos:
+            print(f"  photos (count):        {len(item.photos)}")
+            for idx, photo in enumerate(item.photos):
+                print(f"    [{idx}] PhotoUri:")
+                print(f"        uri:           {repr(photo.uri)}")
+        else:
+            print(f"  photos:                [] (empty array)")
     else:
-        print(f"  ⚠️  auction is None (this is valid)")
+        print(f"  photos:                None")
 
-    if item.shop:
-        print(f"  ✅ shop.id_ = {item.shop.id_}")
-        print(f"  ✅ shop.display_name = {item.shop.display_name}")
-        print(f"  ✅ shop.thumbnail = {item.shop.thumbnail}")
+    # Auction
+    print(f"\n🔨 AUCTION:")
+    if item.auction is not None:
+        print(f"  auction:")
+        print(f"    id:                  {repr(item.auction.id_)}")
+        print(f"    bidDeadline:         {repr(item.auction.bid_deadline)}")
+        print(f"    totalBid:            {repr(item.auction.total_bid)}")
+        print(f"    highestBid:          {repr(item.auction.highest_bid)}")
     else:
-        print(f"  ⚠️  shop is None (this is valid)")
+        print(f"  auction:               null")
 
-    if item.photos:
-        print(f"  ✅ photos[0].uri = {item.photos[0].uri[:50]}...")
-
-    print()
+    # Shop
+    print(f"\n🏪 SHOP:")
+    if item.shop is not None:
+        print(f"  shop:")
+        print(f"    id:                  {repr(item.shop.id_)}")
+        print(f"    displayName:         {repr(item.shop.display_name)}")
+        print(f"    thumbnail:           {repr(item.shop.thumbnail)}")
+    else:
+        print(f"  shop:                  null")
 
 
 async def main():
-    """Run all tests."""
+    """Run comprehensive search test showing all fields."""
     # Set UTF-8 encoding for console output (Windows compatibility)
     if sys.platform == 'win32':
         sys.stdout.reconfigure(encoding='utf-8')
 
-    print_section("COMPREHENSIVE MERCARI SEARCH TEST")
-    print("Testing all possible JSON field combinations")
-    print("This validates proper handling of:")
-    print("  - Required vs optional fields")
-    print("  - Null value handling")
-    print("  - Auction items")
-    print("  - Shop items")
-    print("  - Items with/without brands, sizes, etc.")
+    print_section("COMPREHENSIVE SEARCH RESULTS - ALL FIELDS")
+    print("This test displays EVERY field from the search results JSON")
+    print("including null values and empty arrays/strings.")
 
-    await test_field_access()
-    await test_search_variations()
+    api = Mercapi()
+
+    # Test query
+    query = 'isamu katayama backlash'
+    print(f"\nSearch query: '{query}'")
+
+    results = await api.search(query)
+
+    print(f"\n📊 SEARCH METADATA:")
+    print(f"  Total found:           {results.meta.num_found}")
+    print(f"  Retrieved:             {len(results.items)}")
+    print(f"  Page token:            {repr(results.meta.next_page_token)}")
+
+    # Show complete details for first 3 items
+    items_to_show = min(3, len(results.items))
+
+    print_section(f"DETAILED VIEW - FIRST {items_to_show} ITEMS")
+    print("Showing every single field including null/empty values")
+
+    for idx in range(items_to_show):
+        print_item_complete(results.items[idx], idx + 1)
+
+    # Summary statistics
+    print_section("SUMMARY STATISTICS")
+
+    stats = {
+        'total': len(results.items),
+        'with_seller_id': sum(1 for i in results.items if i.seller_id),
+        'with_buyer_id': sum(1 for i in results.items if i.buyer_id),
+        'with_status': sum(1 for i in results.items if i.status),
+        'with_thumbnails': sum(1 for i in results.items if i.thumbnails),
+        'with_item_type': sum(1 for i in results.items if i.item_type),
+        'with_brand': sum(1 for i in results.items if i.item_brand),
+        'with_size': sum(1 for i in results.items if i.item_size),
+        'with_sizes_list': sum(1 for i in results.items if i.item_sizes),
+        'with_promotions': sum(1 for i in results.items if i.item_promotions),
+        'with_photos': sum(1 for i in results.items if i.photos),
+        'with_auction': sum(1 for i in results.items if i.auction),
+        'with_shop': sum(1 for i in results.items if i.shop),
+        'with_title': sum(1 for i in results.items if i.title),
+        'with_shop_name': sum(1 for i in results.items if i.shop_name),
+    }
+
+    print(f"Total items: {stats['total']}\n")
+    print("Field presence:")
+    print(f"  ├─ sellerId:           {stats['with_seller_id']:3d} / {stats['total']} ({stats['with_seller_id']/stats['total']*100:.1f}%)")
+    print(f"  ├─ buyerId:            {stats['with_buyer_id']:3d} / {stats['total']} ({stats['with_buyer_id']/stats['total']*100:.1f}%)")
+    print(f"  ├─ status:             {stats['with_status']:3d} / {stats['total']} ({stats['with_status']/stats['total']*100:.1f}%)")
+    print(f"  ├─ thumbnails:         {stats['with_thumbnails']:3d} / {stats['total']} ({stats['with_thumbnails']/stats['total']*100:.1f}%)")
+    print(f"  ├─ itemType:           {stats['with_item_type']:3d} / {stats['total']} ({stats['with_item_type']/stats['total']*100:.1f}%)")
+    print(f"  ├─ itemBrand:          {stats['with_brand']:3d} / {stats['total']} ({stats['with_brand']/stats['total']*100:.1f}%)")
+    print(f"  ├─ itemSize:           {stats['with_size']:3d} / {stats['total']} ({stats['with_size']/stats['total']*100:.1f}%)")
+    print(f"  ├─ itemSizes:          {stats['with_sizes_list']:3d} / {stats['total']} ({stats['with_sizes_list']/stats['total']*100:.1f}%)")
+    print(f"  ├─ itemPromotions:     {stats['with_promotions']:3d} / {stats['total']} ({stats['with_promotions']/stats['total']*100:.1f}%)")
+    print(f"  ├─ photos:             {stats['with_photos']:3d} / {stats['total']} ({stats['with_photos']/stats['total']*100:.1f}%)")
+    print(f"  ├─ title:              {stats['with_title']:3d} / {stats['total']} ({stats['with_title']/stats['total']*100:.1f}%)")
+    print(f"  ├─ shopName:           {stats['with_shop_name']:3d} / {stats['total']} ({stats['with_shop_name']/stats['total']*100:.1f}%)")
+    print(f"  ├─ auction:            {stats['with_auction']:3d} / {stats['total']} ({stats['with_auction']/stats['total']*100:.1f}%)")
+    print(f"  └─ shop:               {stats['with_shop']:3d} / {stats['total']} ({stats['with_shop']/stats['total']*100:.1f}%)")
 
     print_section("TEST COMPLETE")
 

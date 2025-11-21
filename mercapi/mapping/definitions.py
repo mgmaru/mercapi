@@ -262,7 +262,11 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
                 "shipped_by_worker",
                 Extractors.get("shipped_by_worker"),
             ),
-            # unknown list, ignore: additional_services
+            ResponseProperty(
+                "additional_services",
+                "additional_services",
+                Extractors.get("additional_services"),
+            ),
             ResponseProperty(
                 "has_additional_service",
                 "has_additional_service",
@@ -1158,7 +1162,7 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
     TimeSaleDetails: R(
         required_properties=[
             ResponseProperty("name", "name", Extractors.get("name")),
-            ResponseProperty("percentage", "percentage", Extractors.get("percentage")),
+            ResponseProperty("percentage", "percentage", Extractors.get_as("percentage", int)),
             ResponseProperty("price", "price", Extractors.get("price")),
             ResponseProperty("startTime", "start_time", Extractors.get("startTime")),
             ResponseProperty("endTime", "end_time", Extractors.get("endTime")),

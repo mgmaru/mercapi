@@ -68,6 +68,7 @@ class Item(ResponseModel):
     is_stock_item: bool
     is_cancelable: bool
     shipped_by_worker: bool
+    additional_services: List[str]
     has_additional_service: bool
     has_like_list: bool
     is_offerable_v2: bool

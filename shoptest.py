@@ -195,7 +195,7 @@ async def main():
     print("\n" + "="*80)
     print("=== COMPREHENSIVE REGULAR MERCARI ITEM DETAILS ===")
     print("="*80)
-    item = await api.item('m54905959893')
+    item = await api.item('m67451288459')
 
     if item:
         print(f"\n📦 ITEM INFORMATION")
@@ -236,6 +236,9 @@ async def main():
         if item.requester:
             print(f"\n🔍 REQUESTER INFO")
             print(f"  Created: {item.requester.created}")
+        else:
+            print(f"\n🔍 REQUESTER INFO")
+            print(f"  None")
 
         # Brand and Size
         if item.item_brand:
@@ -314,6 +317,8 @@ async def main():
             print(f"  Days: {item.shipping_duration.min_days}-{item.shipping_duration.max_days}")
         if item.shipping_class:
             print(f"\n  Shipping Class:")
+            print(f"    ID: {item.shipping_class.id_}")
+            print(f"    Icon ID: {item.shipping_class.icon_id}")
             print(f"    Fee: ¥{item.shipping_class.fee}")
             print(f"    Shipping fee: ¥{item.shipping_class.shipping_fee}")
             print(f"    Pickup fee: ¥{item.shipping_class.pickup_fee}")
@@ -352,6 +357,7 @@ async def main():
             print(f"  Mercard reward: ¥{item.estimate_info.mercard_estimate_reward}")
             print(f"  Estimate text: {item.estimate_info.estimate_reward_text}")
             print(f"  Disclaimer: {item.estimate_info.disclaimer_text}")
+            print(f"  LP URL: {item.estimate_info.lp_url}")
 
         # Engagement
         print(f"\n💬 ENGAGEMENT")
@@ -374,19 +380,53 @@ async def main():
         for idx, photo in enumerate(item.photos[:3], 1):
             print(f"  [{idx}] {photo}")
 
+        # Photo Paths
+        print(f"\n📂 PHOTO PATHS")
+        print(f"  Total: {len(item.photo_paths)}")
+        for idx, path in enumerate(item.photo_paths[:3], 1):
+            print(f"  [{idx}] {path}")
+
+        # Photo Descriptions
+        print(f"\n📝 PHOTO DESCRIPTIONS")
+        if item.photo_descriptions is not None:
+            if item.photo_descriptions:
+                non_empty = [desc for desc in item.photo_descriptions if desc]
+                if non_empty:
+                    for idx, desc in enumerate(non_empty[:3], 1):
+                        print(f"  [{idx}] {desc}")
+                else:
+                    print(f"  All {len(item.photo_descriptions)} descriptions are empty")
+            else:
+                print(f"  Empty list")
+        else:
+            print(f"  None")
+
         # Attributes
-        if item.item_attributes:
-            print(f"\n🏷️ ITEM ATTRIBUTES")
-            for attr in item.item_attributes:
-                if attr.show_on_ui:
+        print(f"\n🏷️ ITEM ATTRIBUTES")
+        if item.item_attributes is not None:
+            if item.item_attributes:
+                print(f"  Total attributes: {len(item.item_attributes)}")
+                for attr in item.item_attributes:
                     values = [v.text for v in attr.values if v.text]
+                    show_status = "✓ shown on UI" if attr.show_on_ui else "✗ hidden"
                     if values:
-                        print(f"  {attr.text}: {', '.join(values)}")
+                        print(f"  - {attr.text} ({show_status}): {', '.join(values)}")
+                    else:
+                        print(f"  - {attr.text} ({show_status}): [empty values]")
+            else:
+                print(f"  Empty list")
+        else:
+            print(f"  None")
 
         # Hash tags
-        if item.hash_tags:
-            print(f"\n#️⃣ HASH TAGS")
-            print(f"  {', '.join(item.hash_tags)}")
+        print(f"\n#️⃣ HASH TAGS")
+        if item.hash_tags is not None:
+            if item.hash_tags:
+                print(f"  {', '.join(item.hash_tags)}")
+            else:
+                print(f"  Empty array")
+        else:
+            print(f"  None")
 
         # Flags and settings
         print(f"\n⚙️ ITEM FLAGS & SETTINGS")
@@ -404,9 +444,33 @@ async def main():
         print(f"  Has active mercard: {item.has_active_mercard}")
 
         # Promotion message
+        print(f"\n📢 PROMOTION MESSAGE")
         if item.promotion_explanation_message:
-            print(f"\n📢 PROMOTION MESSAGE")
             print(f"  {item.promotion_explanation_message}")
+        else:
+            print(f"  None")
+
+        # Additional Services
+        print(f"\n🛠️ ADDITIONAL SERVICES")
+        if item.additional_services is not None:
+            if item.additional_services:
+                for service in item.additional_services:
+                    print(f"  - {service}")
+            else:
+                print(f"  Empty array")
+        else:
+            print(f"  None")
+
+        # Application Attributes
+        print(f"\n📱 APPLICATION ATTRIBUTES")
+        if item.application_attributes is not None:
+            if item.application_attributes:
+                import json
+                print(f"  {json.dumps(item.application_attributes, indent=2)}")
+            else:
+                print(f"  Empty object: {{}}")
+        else:
+            print(f"  None")
 
         # Meta information
         print(f"\n📋 META INFORMATION")
@@ -414,6 +478,7 @@ async def main():
         print(f"  Subtitle: {item.meta_subtitle}")
         print(f"  Checksum: {item.checksum}")
         print(f"  Pager ID: {item.pager_id}")
+        print(f"  Has active mercard (raw): '{item.has_active_mercard}'")
 
         # Timestamps
         print(f"\n⏰ TIMESTAMPS")
