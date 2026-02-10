@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 
 from mercapi.models.base import ResponseModel
 
@@ -184,9 +185,12 @@ class ParentCategoryNtier(ResponseModel):
 class AuctionInfo(ResponseModel):
     id_: str
     start_time: datetime
-    expected_end_time: datetime
     total_bids: int
     initial_price: int
     highest_bid: int
     state: str
     auction_type: str
+    expected_end_time: Optional[datetime] = None
+    finish_time: Optional[datetime] = None
+    winner_id: Optional[str] = None
+    expected_winner_period_end_time: Optional[datetime] = None

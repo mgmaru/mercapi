@@ -354,14 +354,18 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
         required_properties=[
             ResponseProperty("id", "id_", Extractors.get("id")),
             ResponseProperty("start_time", "start_time", Extractors.get_datetime("start_time")),
-            ResponseProperty("expected_end_time", "expected_end_time", Extractors.get_datetime("expected_end_time")),
             ResponseProperty("total_bids", "total_bids", Extractors.get_as("total_bids", int)),
             ResponseProperty("initial_price", "initial_price", Extractors.get_as("initial_price", int)),
             ResponseProperty("highest_bid", "highest_bid", Extractors.get_as("highest_bid", int)),
             ResponseProperty("state", "state", Extractors.get("state")),
             ResponseProperty("auction_type", "auction_type", Extractors.get("auction_type")),
         ],
-        optional_properties=[],
+        optional_properties=[
+            ResponseProperty("expected_end_time", "expected_end_time", Extractors.get_datetime("expected_end_time")),
+            ResponseProperty("finish_time", "finish_time", Extractors.get_datetime("finish_time")),
+            ResponseProperty("winner_id", "winner_id", Extractors.get("winner_id")),
+            ResponseProperty("expected_winner_period_end_time", "expected_winner_period_end_time", Extractors.get_datetime("expected_winner_period_end_time")),
+        ],
     ),
     Seller: R(
         required_properties=[
@@ -1004,7 +1008,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
             ResponseProperty("attributes", "attributes", Extractors.get("attributes")),
             ResponseProperty("productDetail", "product_detail", Extractors.get_as_model("productDetail", ShopProductDetail)),
         ],
-        optional_properties=[],
+        optional_properties=[
+            ResponseProperty("isBlockedShop", "is_blocked_shop", Extractors.get("isBlockedShop")),
+        ],
     ),
     ShopProductDetail: R(
         required_properties=[
@@ -1047,7 +1053,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
             ResponseProperty("badges", "badges", Extractors.get_list_of_model("badges", ShopBadge)),
             ResponseProperty("hasApprovedBrandScreening", "has_approved_brand_screening", Extractors.get("hasApprovedBrandScreening")),
         ],
-        optional_properties=[],
+        optional_properties=[
+            ResponseProperty("alwaysShowStock", "always_show_stock", Extractors.get("alwaysShowStock")),
+        ],
     ),
     ShopStats: R(
         required_properties=[
@@ -1070,9 +1078,11 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
     ShopBadge: R(
         required_properties=[
             ResponseProperty("badgeType", "badge_type", Extractors.get("badgeType")),
-            ResponseProperty("badgeName", "badge_name", Extractors.get("badgeName")),
         ],
-        optional_properties=[],
+        optional_properties=[
+            ResponseProperty("badgeName", "badge_name", Extractors.get("badgeName")),
+            ResponseProperty("status", "status", Extractors.get("status")),
+        ],
     ),
     ShopProductCategory: R(
         required_properties=[

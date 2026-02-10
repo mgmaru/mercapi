@@ -62,3 +62,6 @@ class ShopProduct(ResponseModel):
 
     product_detail: ShopProductDetail
     """Detailed product information including shop, shipping, promotions, etc."""
+
+    is_blocked_shop: Optional[bool] = None
+    """Whether the shop is blocked"""

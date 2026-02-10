@@ -52,7 +52,8 @@ class ShopItemSummary(ResponseModel):
 @dataclass
 class ShopBadge(ResponseModel):
     badge_type: str
-    badge_name: str
+    badge_name: Optional[str] = None
+    status: Optional[str] = None
 
 
 @dataclass
@@ -85,6 +86,9 @@ class ShopDetail(ResponseModel):
 
     has_approved_brand_screening: bool
     """Whether shop has passed brand screening"""
+
+    always_show_stock: Optional[bool] = None
+    """Whether stock is always shown"""
 
 
 @dataclass
