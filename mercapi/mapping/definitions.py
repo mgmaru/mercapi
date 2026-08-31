@@ -3,6 +3,11 @@ from datetime import datetime
 from typing import NamedTuple, List, Dict, TypeVar, Type, Any, Optional, Callable
 
 from mercapi.models import Item, Items, Profile, SearchResults, SearchResultItem
+from mercapi.models.profile import (
+    SellerItem,
+    SellerItemAuctionInfo,
+    SellerItemsPage,
+)
 from mercapi.models.common import ItemCategory, ItemCategorySummary
 from mercapi.models.search import PhotoUri, Auction, Shop
 from mercapi.models.shop import (
@@ -138,6 +143,18 @@ class Extractors:
 
         module_name, class_name = model.rsplit(".", 1)
         return getattr(importlib.import_module(module_name), class_name)
+
+
+def _extract_has_next(response: dict) -> Optional[bool]:
+    """Read ``meta.has_next``.
+
+    Returns ``None`` when the field is missing so the caller reports a parse
+    error instead of quietly treating the page as the last one.
+    """
+    meta = response.get("meta")
+    if not isinstance(meta, dict) or "has_next" not in meta:
+        return None
+    return bool(meta["has_next"])
 
 
 R = ResponseMappingDefinition
@@ -709,7 +726,38 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
                 "shipping_from_area",
                 Extractors.get_as_model("shipping_from_area", ShippingFromArea),
             ),
+            ResponseProperty("pager_id", "pager_id", Extractors.get("pager_id")),
+            ResponseProperty(
+                "auction_info",
+                "auction_info",
+                Extractors.get_as_model("auction_info", SellerItemAuctionInfo),
+            ),
         ],
+    ),
+    SellerItemAuctionInfo: R(
+        required_properties=[],
+        optional_properties=[
+            ResponseProperty("id", "id_", Extractors.get("id")),
+            ResponseProperty(
+                "bid_deadline", "bid_deadline", Extractors.get("bid_deadline")
+            ),
+            ResponseProperty("total_bid", "total_bid", Extractors.get("total_bid")),
+            ResponseProperty(
+                "initial_price", "initial_price", Extractors.get("initial_price")
+            ),
+            ResponseProperty(
+                "highest_bid", "highest_bid", Extractors.get("highest_bid")
+            ),
+        ],
+    ),
+    SellerItemsPage: R(
+        required_properties=[
+            ResponseProperty(
+                "data", "items", Extractors.get_list_of_model("data", SellerItem)
+            ),
+            ResponseProperty("meta", "has_next", _extract_has_next),
+        ],
+        optional_properties=[],
     ),
     Profile: R(
         required_properties=[

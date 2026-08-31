@@ -1,6 +1,6 @@
 import random
 import uuid
-from typing import Optional, List
+from typing import Optional, List, Sequence
 
 import httpx
 from httpx._types import ProxiesTypes
@@ -8,11 +8,22 @@ from ecdsa import SigningKey, NIST256p
 from httpx import Request
 
 from mercapi.mapping import map_to_class
-from mercapi.models import SearchResults, Item, Profile, Items
+from mercapi.models import (
+    SearchResults,
+    Item,
+    Profile,
+    Items,
+    SellerItemsPage,
+)
 from mercapi.models.base import ResponseModel
 from mercapi.models.shop import ShopProduct
 from mercapi.requests import SearchRequestData
 from mercapi.util import jwt
+from mercapi.util.errors import ParseAPIResponseError
+
+
+SELLER_ITEM_STATUSES = ("on_sale", "trading", "sold_out")
+SELLER_ITEMS_MAX_LIMIT = 30
 
 
 class Mercapi:
@@ -220,7 +231,109 @@ class Mercapi:
         )
         return self._sign_request(req)
 
-    async def shop_product(self, product_id: str, view: str = "FULL", image_type: str = "JPEG") -> Optional[ShopProduct]:
+    async def items_page(
+        self,
+        profile_id: str,
+        statuses: Sequence[str],
+        *,
+        limit: int = SELLER_ITEMS_MAX_LIMIT,
+        max_pager_id: Optional[int] = None,
+        with_auction: bool = False,
+    ) -> Optional[SellerItemsPage]:
+        """Fetch one page of items sold by specified seller.
+
+        Unlike :func:`~mercapi.Mercapi.items`, the listing status can be chosen
+        and the result can be paged. Mercari returns at most 30 items per
+        response and reports whether another page exists.
+
+        :param profile_id: ID of a seller
+        :param statuses: listing statuses to request, any of `on_sale`,
+            `trading` and `sold_out`. At least one is required
+        :param limit: page size, 1 to 30
+        :param max_pager_id: cursor of the next page. Pass `None` for the first
+            page, then the `next_max_pager_id` of the previous page
+        :param with_auction: request auction properties. Without it the response
+            carries no `auction_info` at all, so auction listings cannot be told
+            apart from ordinary ones
+        :return: one page of seller items and the cursor of the next page
+        """
+        statuses = tuple(statuses)
+        if not profile_id:
+            raise ValueError("profile_id must not be empty")
+        if not statuses:
+            raise ValueError("at least one listing status is required")
+        unsupported = [s for s in statuses if s not in SELLER_ITEM_STATUSES]
+        if unsupported:
+            raise ValueError(
+                f"unsupported listing status: {', '.join(unsupported)}. "
+                f"expected any of {', '.join(SELLER_ITEM_STATUSES)}"
+            )
+        if not 1 <= limit <= SELLER_ITEMS_MAX_LIMIT:
+            raise ValueError(
+                f"limit must be between 1 and {SELLER_ITEMS_MAX_LIMIT}, got {limit}"
+            )
+
+        res = await self._client.send(
+            self._items_page(profile_id, statuses, limit, max_pager_id, with_auction)
+        )
+        if res.status_code == 404:
+            return None
+
+        body = res.json()
+        page = map_to_class(body, SellerItemsPage)
+        page.next_max_pager_id = self._next_max_pager_id(page)
+        return page
+
+    def _items_page(
+        self,
+        profile_id: str,
+        statuses: Sequence[str],
+        limit: int,
+        max_pager_id: Optional[int],
+        with_auction: bool,
+    ) -> Request:
+        params = {
+            "seller_id": profile_id,
+            "limit": limit,
+            "status": ",".join(statuses),
+        }
+        if with_auction:
+            params["with_auction"] = "true"
+        if max_pager_id is not None:
+            params["max_pager_id"] = max_pager_id
+        req = Request(
+            "GET",
+            "https://api.mercari.jp/items/get_items",
+            params=params,
+            headers=self._headers,
+        )
+        return self._sign_request(req)
+
+    @staticmethod
+    def _next_max_pager_id(page: SellerItemsPage) -> Optional[int]:
+        """Derive the next cursor, never guessing one.
+
+        A response that promises another page but cannot say where it continues
+        is broken, and is reported instead of being silently treated as the last
+        page.
+        """
+        if not page.has_next:
+            return None
+        if not page.items:
+            raise ParseAPIResponseError(
+                "Response reports another page of seller items but returned none"
+            )
+        pager_id = page.items[-1].pager_id
+        if pager_id is None:
+            raise ParseAPIResponseError(
+                "Response reports another page of seller items but the last item "
+                "has no pager_id"
+            )
+        return pager_id
+
+    async def shop_product(
+        self, product_id: str, view: str = "FULL", image_type: str = "JPEG"
+    ) -> Optional[ShopProduct]:
         """Fetch details of a single shop product listing.
         This method reflects the action of loading a shop product view.
 
@@ -236,7 +349,9 @@ class Mercapi:
         body = res.json()
         return map_to_class(body, ShopProduct)
 
-    def _shop_product(self, product_id: str, view: str = "FULL", image_type: str = "JPEG") -> Request:
+    def _shop_product(
+        self, product_id: str, view: str = "FULL", image_type: str = "JPEG"
+    ) -> Request:
         req = Request(
             "GET",
             f"https://api.mercari.jp/v1/marketplaces/shops/products/{product_id}",

@@ -1,0 +1,15 @@
+{
+  "result": "OK",
+  "meta": { "has_next": false },
+  "data": [
+    {
+      "id": "m000000000001",
+      "seller": { "id": 100000001, "name": "sample-seller-1" },
+      "status": "on_sale",
+      "name": "sample-unknown-shape-item",
+      "price": 1200,
+      "pager_id": 9,
+      "auction_info": { "__unknown_field": "unrecognised" }
+    }
+  ]
+}
