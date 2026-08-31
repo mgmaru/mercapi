@@ -386,7 +386,8 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
         ],
     ),
     AuctionInfo: R(
-        required_properties=[
+        required_properties=[],
+        optional_properties=[
             ResponseProperty("id", "id_", Extractors.get("id")),
             ResponseProperty(
                 "start_time", "start_time", Extractors.get_datetime("start_time")
@@ -406,8 +407,6 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
             ResponseProperty(
                 "auction_type", "auction_type", Extractors.get("auction_type")
             ),
-        ],
-        optional_properties=[
             ResponseProperty(
                 "expected_end_time",
                 "expected_end_time",

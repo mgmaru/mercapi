@@ -1,0 +1,9 @@
+{
+  "data": {
+    "id": "m000000000004",
+    "status": "on_sale",
+    "name": "sample-empty-auction-item",
+    "price": 3400,
+    "auction_info": {}
+  }
+}

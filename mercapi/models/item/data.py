@@ -183,13 +183,26 @@ class ParentCategoryNtier(ResponseModel):
 
 @dataclass
 class AuctionInfo(ResponseModel):
-    id_: str
-    start_time: datetime
-    total_bids: int
-    initial_price: int
-    highest_bid: int
-    state: str
-    auction_type: str
+    """Auction properties of an item detail listing.
+
+    Only returned for auction listings, and only when the request carries
+    ``include_auction=true``. The shape differs from the seller items endpoint,
+    which uses ``total_bid`` and ``bid_deadline``.
+
+    Every property is optional so an unrecognised shape is preserved rather than
+    silently reported as a normal listing. A required property that cannot be
+    read is not an error here: the mapper reports it on the log and leaves the
+    whole model unset, which is indistinguishable from an ordinary listing that
+    carries no auction at all.
+    """
+
+    id_: Optional[str] = None
+    start_time: Optional[datetime] = None
+    total_bids: Optional[int] = None
+    initial_price: Optional[int] = None
+    highest_bid: Optional[int] = None
+    state: Optional[str] = None
+    auction_type: Optional[str] = None
     expected_end_time: Optional[datetime] = None
     finish_time: Optional[datetime] = None
     winner_id: Optional[str] = None

@@ -22,6 +22,12 @@ Rules
 | `seller_items/missing_last_pager_id.json` | derived | `page_1_has_next.json` | 2026-08-31 | missing trailing `pager_id` is a parse error |
 | `seller_items/with_auction.json` | observed | — | 2026-08-31 | `auction_info` is present only on auction listings |
 | `seller_items/unknown_auction_shape.json` | derived | `with_auction.json` | 2026-08-31 | an unrecognised `auction_info` shape is preserved, not dropped |
+| `item/auction.json` | observed | — | 2026-08-31 | every `auction_info` property of an auction listing is parsed |
+| `item/fixed_price.json` | observed | — | 2026-08-31 | a listing without `auction_info` leaves the model unset |
+| `item/auction_info_null.json` | derived | `item/fixed_price.json` | 2026-08-31 | a null `auction_info` leaves the model unset |
+| `item/auction_info_empty.json` | derived | `item/auction.json` | 2026-08-31 | an empty `auction_info` is preserved, not dropped |
+| `item/auction_info_unknown_shape.json` | derived | `item/auction.json` | 2026-08-31 | an unrecognised `auction_info` shape is preserved, not dropped |
+| `item/auction_info_partial.json` | derived | `item/auction.json` | 2026-08-31 | the properties that could be read survive a partial shape |
 
 `observed` fixtures follow a response shape recorded during the Card Digger
 auction validation on 2026-08-31 against upstream commit
@@ -49,3 +55,14 @@ or type was invented. There is no `assumed` fixture.
 `bid_deadline` is an ISO 8601 string. The other three are integers. This differs
 from the item detail endpoint, which uses `total_bids`, `state`, `auction_type`
 and `expected_end_time`.
+
+`GET /items/get` returns the listing under `data`, and carries `auction_info`
+only for an auction listing requested with `include_auction=true`:
+
+```text
+{ "id", "start_time", "total_bids", "initial_price", "highest_bid",
+  "state", "auction_type", "expected_end_time" }
+```
+
+`start_time` and `expected_end_time` are epoch seconds, `state` and
+`auction_type` are tokens such as `STATE_ONGOING` and `AUCTION_TYPE_NORMAL`.
