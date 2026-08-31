@@ -107,7 +107,11 @@ class Extractors:
     ) -> ExtractorDef[M]:
         if type(model) == str:
             model = Extractors.__import_class(model)
-        return lambda x: map_to_class(x[key], model, map_def) if key in x and x[key] is not None else None
+        return (
+            lambda x: map_to_class(x[key], model, map_def)
+            if key in x and x[key] is not None
+            else None
+        )
 
     @staticmethod
     def get_with(key: str, mapper: Callable[[S], T]) -> ExtractorDef[T]:
@@ -121,7 +125,11 @@ class Extractors:
     def get_list_of_model(key: str, model: Type[M]) -> ExtractorDef[List[M]]:
         if type(model) == str:
             model = Extractors.__import_class(model)
-        return lambda x: [map_to_class(i, model) for i in x[key]] if key in x and x[key] is not None else None
+        return (
+            lambda x: [map_to_class(i, model) for i in x[key]]
+            if key in x and x[key] is not None
+            else None
+        )
 
     @staticmethod
     def get_datetime(key: str) -> ExtractorDef[datetime]:
@@ -130,11 +138,13 @@ class Extractors:
     @staticmethod
     def get_either(*keys: str) -> ExtractorDef[Any]:
         """Try multiple keys in order, return first non-None value"""
+
         def extractor(x):
             for key in keys:
                 if key in x and x[key] is not None:
                     return x[key]
             return None
+
         return extractor
 
     @staticmethod
@@ -296,13 +306,17 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
                 "is_offerable_v2", "is_offerable_v2", Extractors.get("is_offerable_v2")
             ),
             ResponseProperty(
-                "requester", "requester", Extractors.get_as_model("requester", Requester)
+                "requester",
+                "requester",
+                Extractors.get_as_model("requester", Requester),
             ),
             ResponseProperty(
                 "item_size", "item_size", Extractors.get_as_model("item_size", ItemSize)
             ),
             ResponseProperty(
-                "item_brand", "item_brand", Extractors.get_as_model("item_brand", ItemBrand)
+                "item_brand",
+                "item_brand",
+                Extractors.get_as_model("item_brand", ItemBrand),
             ),
             ResponseProperty(
                 "item_category_ntiers",
@@ -312,7 +326,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
             ResponseProperty(
                 "parent_categories_ntiers",
                 "parent_categories_ntiers",
-                Extractors.get_list_of_model("parent_categories_ntiers", ParentCategoryNtier),
+                Extractors.get_list_of_model(
+                    "parent_categories_ntiers", ParentCategoryNtier
+                ),
             ),
             ResponseProperty(
                 "registered_prices_count",
@@ -330,7 +346,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
                 "item_attributes",
                 Extractors.get_list_of_model("item_attributes", ItemAttribute),
             ),
-            ResponseProperty("is_dismissed", "is_dismissed", Extractors.get("is_dismissed")),
+            ResponseProperty(
+                "is_dismissed", "is_dismissed", Extractors.get("is_dismissed")
+            ),
             ResponseProperty(
                 "photo_descriptions",
                 "photo_descriptions",
@@ -370,18 +388,40 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
     AuctionInfo: R(
         required_properties=[
             ResponseProperty("id", "id_", Extractors.get("id")),
-            ResponseProperty("start_time", "start_time", Extractors.get_datetime("start_time")),
-            ResponseProperty("total_bids", "total_bids", Extractors.get_as("total_bids", int)),
-            ResponseProperty("initial_price", "initial_price", Extractors.get_as("initial_price", int)),
-            ResponseProperty("highest_bid", "highest_bid", Extractors.get_as("highest_bid", int)),
+            ResponseProperty(
+                "start_time", "start_time", Extractors.get_datetime("start_time")
+            ),
+            ResponseProperty(
+                "total_bids", "total_bids", Extractors.get_as("total_bids", int)
+            ),
+            ResponseProperty(
+                "initial_price",
+                "initial_price",
+                Extractors.get_as("initial_price", int),
+            ),
+            ResponseProperty(
+                "highest_bid", "highest_bid", Extractors.get_as("highest_bid", int)
+            ),
             ResponseProperty("state", "state", Extractors.get("state")),
-            ResponseProperty("auction_type", "auction_type", Extractors.get("auction_type")),
+            ResponseProperty(
+                "auction_type", "auction_type", Extractors.get("auction_type")
+            ),
         ],
         optional_properties=[
-            ResponseProperty("expected_end_time", "expected_end_time", Extractors.get_datetime("expected_end_time")),
-            ResponseProperty("finish_time", "finish_time", Extractors.get_datetime("finish_time")),
+            ResponseProperty(
+                "expected_end_time",
+                "expected_end_time",
+                Extractors.get_datetime("expected_end_time"),
+            ),
+            ResponseProperty(
+                "finish_time", "finish_time", Extractors.get_datetime("finish_time")
+            ),
             ResponseProperty("winner_id", "winner_id", Extractors.get("winner_id")),
-            ResponseProperty("expected_winner_period_end_time", "expected_winner_period_end_time", Extractors.get_datetime("expected_winner_period_end_time")),
+            ResponseProperty(
+                "expected_winner_period_end_time",
+                "expected_winner_period_end_time",
+                Extractors.get_datetime("expected_winner_period_end_time"),
+            ),
         ],
     ),
     Seller: R(
@@ -562,7 +602,11 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
         ],
         optional_properties=[
             # API inconsistency: search uses "subName" (camelCase), item details uses "sub_name" (snake_case)
-            ResponseProperty("subName|sub_name", "sub_name", Extractors.get_either("subName", "sub_name")),
+            ResponseProperty(
+                "subName|sub_name",
+                "sub_name",
+                Extractors.get_either("subName", "sub_name"),
+            ),
         ],
     ),
     ItemAttributeValue: R(
@@ -590,7 +634,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
         required_properties=[
             ResponseProperty("message", "message", Extractors.get("message")),
             ResponseProperty(
-                "campaign_message", "campaign_message", Extractors.get("campaign_message")
+                "campaign_message",
+                "campaign_message",
+                Extractors.get("campaign_message"),
             ),
             ResponseProperty(
                 "campaign_url", "campaign_url", Extractors.get("campaign_url")
@@ -601,7 +647,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
     Defpay: R(
         required_properties=[
             ResponseProperty(
-                "calculated_price", "calculated_price", Extractors.get("calculated_price")
+                "calculated_price",
+                "calculated_price",
+                Extractors.get("calculated_price"),
             ),
             ResponseProperty(
                 "is_easypay_heavy_user",
@@ -619,7 +667,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
                 Extractors.get("installment_monthly_amount"),
             ),
             ResponseProperty(
-                "installment_times", "installment_times", Extractors.get("installment_times")
+                "installment_times",
+                "installment_times",
+                Extractors.get("installment_times"),
             ),
             ResponseProperty(
                 "promotion_installment",
@@ -889,7 +939,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
         required_properties=[],
         optional_properties=[
             ResponseProperty("id", "id_", Extractors.get("id")),
-            ResponseProperty("bidDeadline", "bid_deadline", Extractors.get("bidDeadline")),
+            ResponseProperty(
+                "bidDeadline", "bid_deadline", Extractors.get("bidDeadline")
+            ),
             ResponseProperty("totalBid", "total_bid", Extractors.get("totalBid")),
             ResponseProperty("highestBid", "highest_bid", Extractors.get("highestBid")),
         ],
@@ -899,7 +951,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
             ResponseProperty("id", "id_", Extractors.get("id")),
         ],
         optional_properties=[
-            ResponseProperty("display_name", "display_name", Extractors.get("display_name")),
+            ResponseProperty(
+                "display_name", "display_name", Extractors.get("display_name")
+            ),
             ResponseProperty("thumbnail", "thumbnail", Extractors.get("thumbnail")),
         ],
     ),
@@ -946,7 +1000,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
                 Extractors.get_list_of_model("itemSizes", ItemSize),
             ),
             ResponseProperty(
-                "itemBrand", "item_brand", Extractors.get_as_model("itemBrand", ItemBrand)
+                "itemBrand",
+                "item_brand",
+                Extractors.get_as_model("itemBrand", ItemBrand),
             ),
             ResponseProperty(
                 "itemPromotions", "item_promotions", Extractors.get("itemPromotions")
@@ -1047,77 +1103,205 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
     ShopProduct: R(
         required_properties=[
             ResponseProperty("name", "name", Extractors.get("name")),
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
-            ResponseProperty("productTags", "product_tags", Extractors.get("productTags")),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
+            ResponseProperty(
+                "productTags", "product_tags", Extractors.get("productTags")
+            ),
             ResponseProperty("thumbnail", "thumbnail", Extractors.get("thumbnail")),
             ResponseProperty("price", "price", Extractors.get("price")),
             ResponseProperty("createTime", "create_time", Extractors.get("createTime")),
             ResponseProperty("updateTime", "update_time", Extractors.get("updateTime")),
             ResponseProperty("attributes", "attributes", Extractors.get("attributes")),
-            ResponseProperty("productDetail", "product_detail", Extractors.get_as_model("productDetail", ShopProductDetail)),
+            ResponseProperty(
+                "productDetail",
+                "product_detail",
+                Extractors.get_as_model("productDetail", ShopProductDetail),
+            ),
         ],
         optional_properties=[
-            ResponseProperty("isBlockedShop", "is_blocked_shop", Extractors.get("isBlockedShop")),
+            ResponseProperty(
+                "isBlockedShop", "is_blocked_shop", Extractors.get("isBlockedShop")
+            ),
         ],
     ),
     ShopProductDetail: R(
         required_properties=[
-            ResponseProperty("shop", "shop", Extractors.get_as_model("shop", ShopDetail)),
+            ResponseProperty(
+                "shop", "shop", Extractors.get_as_model("shop", ShopDetail)
+            ),
             ResponseProperty("photos", "photos", Extractors.get("photos")),
-            ResponseProperty("description", "description", Extractors.get("description")),
-            ResponseProperty("categories", "categories", Extractors.get_list_of_model("categories", ShopProductCategory)),
-            ResponseProperty("condition", "condition", Extractors.get_as_model("condition", ShopProductCondition)),
-            ResponseProperty("shippingMethod", "shipping_method", Extractors.get_as_model("shippingMethod", ShopProductShippingMethod)),
-            ResponseProperty("shippingPayer", "shipping_payer", Extractors.get_as_model("shippingPayer", ShopProductShippingPayer)),
-            ResponseProperty("shippingDuration", "shipping_duration", Extractors.get_as_model("shippingDuration", ShopProductShippingDuration)),
-            ResponseProperty("shippingFromArea", "shipping_from_area", Extractors.get_as_model("shippingFromArea", ShopProductShippingFromArea)),
-            ResponseProperty("promotions", "promotions", Extractors.get_list_of_model("promotions", Promotion)),
-            ResponseProperty("variants", "variants", Extractors.get_list_of_model("variants", ProductVariant)),
+            ResponseProperty(
+                "description", "description", Extractors.get("description")
+            ),
+            ResponseProperty(
+                "categories",
+                "categories",
+                Extractors.get_list_of_model("categories", ShopProductCategory),
+            ),
+            ResponseProperty(
+                "condition",
+                "condition",
+                Extractors.get_as_model("condition", ShopProductCondition),
+            ),
+            ResponseProperty(
+                "shippingMethod",
+                "shipping_method",
+                Extractors.get_as_model("shippingMethod", ShopProductShippingMethod),
+            ),
+            ResponseProperty(
+                "shippingPayer",
+                "shipping_payer",
+                Extractors.get_as_model("shippingPayer", ShopProductShippingPayer),
+            ),
+            ResponseProperty(
+                "shippingDuration",
+                "shipping_duration",
+                Extractors.get_as_model(
+                    "shippingDuration", ShopProductShippingDuration
+                ),
+            ),
+            ResponseProperty(
+                "shippingFromArea",
+                "shipping_from_area",
+                Extractors.get_as_model(
+                    "shippingFromArea", ShopProductShippingFromArea
+                ),
+            ),
+            ResponseProperty(
+                "promotions",
+                "promotions",
+                Extractors.get_list_of_model("promotions", Promotion),
+            ),
+            ResponseProperty(
+                "variants",
+                "variants",
+                Extractors.get_list_of_model("variants", ProductVariant),
+            ),
         ],
         optional_properties=[
-            ResponseProperty("brand", "brand", Extractors.get_as_model("brand", ShopProductBrand)),
-            ResponseProperty("productStats", "product_stats", Extractors.get_as_model("productStats", ProductStats)),
-            ResponseProperty("timeSaleDetails", "time_sale_details", Extractors.get_as_model("timeSaleDetails", TimeSaleDetails)),
-            ResponseProperty("shippingFeeConfig", "shipping_fee_config", Extractors.get_as_model("shippingFeeConfig", ShippingFeeConfig)),
-            ResponseProperty("variationGrouping", "variation_grouping", Extractors.get_as_model("variationGrouping", VariationGrouping)),
-            ResponseProperty("buyerPromotion", "buyer_promotion", Extractors.get_as_model("buyerPromotion", BuyerPromotion)),
-            ResponseProperty("followPromotion", "follow_promotion", Extractors.get_as_model("followPromotion", FollowPromotion)),
-            ResponseProperty("lastPurchasedDateTime", "last_purchased_date_time", Extractors.get("lastPurchasedDateTime")),
-            ResponseProperty("realCardReward", "real_card_reward", Extractors.get_as_model("realCardReward", RealCardReward)),
-            ResponseProperty("mercardCampaign", "mercard_campaign", Extractors.get_as_model("mercardCampaign", MercardCampaign)),
-            ResponseProperty("seoMetadata", "seo_metadata", Extractors.get_as_model("seoMetadata", SeoMetadata)),
-            ResponseProperty("productPreOrder", "product_pre_order", Extractors.get_as_model("productPreOrder", ProductPreOrder)),
+            ResponseProperty(
+                "brand", "brand", Extractors.get_as_model("brand", ShopProductBrand)
+            ),
+            ResponseProperty(
+                "productStats",
+                "product_stats",
+                Extractors.get_as_model("productStats", ProductStats),
+            ),
+            ResponseProperty(
+                "timeSaleDetails",
+                "time_sale_details",
+                Extractors.get_as_model("timeSaleDetails", TimeSaleDetails),
+            ),
+            ResponseProperty(
+                "shippingFeeConfig",
+                "shipping_fee_config",
+                Extractors.get_as_model("shippingFeeConfig", ShippingFeeConfig),
+            ),
+            ResponseProperty(
+                "variationGrouping",
+                "variation_grouping",
+                Extractors.get_as_model("variationGrouping", VariationGrouping),
+            ),
+            ResponseProperty(
+                "buyerPromotion",
+                "buyer_promotion",
+                Extractors.get_as_model("buyerPromotion", BuyerPromotion),
+            ),
+            ResponseProperty(
+                "followPromotion",
+                "follow_promotion",
+                Extractors.get_as_model("followPromotion", FollowPromotion),
+            ),
+            ResponseProperty(
+                "lastPurchasedDateTime",
+                "last_purchased_date_time",
+                Extractors.get("lastPurchasedDateTime"),
+            ),
+            ResponseProperty(
+                "realCardReward",
+                "real_card_reward",
+                Extractors.get_as_model("realCardReward", RealCardReward),
+            ),
+            ResponseProperty(
+                "mercardCampaign",
+                "mercard_campaign",
+                Extractors.get_as_model("mercardCampaign", MercardCampaign),
+            ),
+            ResponseProperty(
+                "seoMetadata",
+                "seo_metadata",
+                Extractors.get_as_model("seoMetadata", SeoMetadata),
+            ),
+            ResponseProperty(
+                "productPreOrder",
+                "product_pre_order",
+                Extractors.get_as_model("productPreOrder", ProductPreOrder),
+            ),
         ],
     ),
     ShopDetail: R(
         required_properties=[
             ResponseProperty("name", "name", Extractors.get("name")),
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
             ResponseProperty("thumbnail", "thumbnail", Extractors.get("thumbnail")),
-            ResponseProperty("shopStats", "shop_stats", Extractors.get_as_model("shopStats", ShopStats)),
-            ResponseProperty("allowDirectMessage", "allow_direct_message", Extractors.get("allowDirectMessage")),
-            ResponseProperty("shopItems", "shop_items", Extractors.get_list_of_model("shopItems", ShopItemSummary)),
-            ResponseProperty("isInboundXb", "is_inbound_xb", Extractors.get("isInboundXb")),
-            ResponseProperty("badges", "badges", Extractors.get_list_of_model("badges", ShopBadge)),
-            ResponseProperty("hasApprovedBrandScreening", "has_approved_brand_screening", Extractors.get("hasApprovedBrandScreening")),
+            ResponseProperty(
+                "shopStats",
+                "shop_stats",
+                Extractors.get_as_model("shopStats", ShopStats),
+            ),
+            ResponseProperty(
+                "allowDirectMessage",
+                "allow_direct_message",
+                Extractors.get("allowDirectMessage"),
+            ),
+            ResponseProperty(
+                "shopItems",
+                "shop_items",
+                Extractors.get_list_of_model("shopItems", ShopItemSummary),
+            ),
+            ResponseProperty(
+                "isInboundXb", "is_inbound_xb", Extractors.get("isInboundXb")
+            ),
+            ResponseProperty(
+                "badges", "badges", Extractors.get_list_of_model("badges", ShopBadge)
+            ),
+            ResponseProperty(
+                "hasApprovedBrandScreening",
+                "has_approved_brand_screening",
+                Extractors.get("hasApprovedBrandScreening"),
+            ),
         ],
         optional_properties=[
-            ResponseProperty("alwaysShowStock", "always_show_stock", Extractors.get("alwaysShowStock")),
+            ResponseProperty(
+                "alwaysShowStock",
+                "always_show_stock",
+                Extractors.get("alwaysShowStock"),
+            ),
         ],
     ),
     ShopStats: R(
         required_properties=[
             ResponseProperty("shopId", "shop_id", Extractors.get("shopId")),
             ResponseProperty("score", "score", Extractors.get("score")),
-            ResponseProperty("reviewCount", "review_count", Extractors.get("reviewCount")),
+            ResponseProperty(
+                "reviewCount", "review_count", Extractors.get("reviewCount")
+            ),
         ],
         optional_properties=[],
     ),
     ShopItemSummary: R(
         required_properties=[
             ResponseProperty("productId", "product_id", Extractors.get("productId")),
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
-            ResponseProperty("productTags", "product_tags", Extractors.get("productTags")),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
+            ResponseProperty(
+                "productTags", "product_tags", Extractors.get("productTags")
+            ),
             ResponseProperty("thumbnail", "thumbnail", Extractors.get("thumbnail")),
             ResponseProperty("price", "price", Extractors.get("price")),
         ],
@@ -1135,7 +1319,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
     ShopProductCategory: R(
         required_properties=[
             ResponseProperty("categoryId", "category_id", Extractors.get("categoryId")),
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
             ResponseProperty("parentId", "parent_id", Extractors.get("parentId")),
             ResponseProperty("rootId", "root_id", Extractors.get("rootId")),
             ResponseProperty("hasChild", "has_child", Extractors.get("hasChild")),
@@ -1145,36 +1331,60 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
     ShopProductBrand: R(
         required_properties=[
             ResponseProperty("brandId", "brand_id", Extractors.get("brandId")),
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
         ],
         optional_properties=[],
     ),
     ShopProductCondition: R(
         required_properties=[
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
         ],
         optional_properties=[],
     ),
     ShopProductShippingMethod: R(
         required_properties=[
-            ResponseProperty("shippingMethodId", "shipping_method_id", Extractors.get("shippingMethodId")),
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
-            ResponseProperty("isAnonymous", "is_anonymous", Extractors.get("isAnonymous")),
+            ResponseProperty(
+                "shippingMethodId",
+                "shipping_method_id",
+                Extractors.get("shippingMethodId"),
+            ),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
+            ResponseProperty(
+                "isAnonymous", "is_anonymous", Extractors.get("isAnonymous")
+            ),
         ],
         optional_properties=[],
     ),
     ShopProductShippingPayer: R(
         required_properties=[
-            ResponseProperty("shippingPayerId", "shipping_payer_id", Extractors.get("shippingPayerId")),
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
+            ResponseProperty(
+                "shippingPayerId",
+                "shipping_payer_id",
+                Extractors.get("shippingPayerId"),
+            ),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
             ResponseProperty("code", "code", Extractors.get("code")),
         ],
         optional_properties=[],
     ),
     ShopProductShippingDuration: R(
         required_properties=[
-            ResponseProperty("shippingDurationId", "shipping_duration_id", Extractors.get("shippingDurationId")),
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
+            ResponseProperty(
+                "shippingDurationId",
+                "shipping_duration_id",
+                Extractors.get("shippingDurationId"),
+            ),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
             ResponseProperty("minDays", "min_days", Extractors.get("minDays")),
             ResponseProperty("maxDays", "max_days", Extractors.get("maxDays")),
         ],
@@ -1182,29 +1392,51 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
     ),
     ShopProductShippingFromArea: R(
         required_properties=[
-            ResponseProperty("shippingAreaCode", "shipping_area_code", Extractors.get("shippingAreaCode")),
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
+            ResponseProperty(
+                "shippingAreaCode",
+                "shipping_area_code",
+                Extractors.get("shippingAreaCode"),
+            ),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
         ],
         optional_properties=[],
     ),
     PromotionAction: R(
         required_properties=[
             ResponseProperty("action", "action", Extractors.get("action")),
-            ResponseProperty("discountType", "discount_type", Extractors.get("discountType")),
-            ResponseProperty("discountValue", "discount_value", Extractors.get("discountValue")),
+            ResponseProperty(
+                "discountType", "discount_type", Extractors.get("discountType")
+            ),
+            ResponseProperty(
+                "discountValue", "discount_value", Extractors.get("discountValue")
+            ),
             ResponseProperty("returnType", "return_type", Extractors.get("returnType")),
             ResponseProperty("couponType", "coupon_type", Extractors.get("couponType")),
-            ResponseProperty("maxReturnAmount", "max_return_amount", Extractors.get("maxReturnAmount")),
+            ResponseProperty(
+                "maxReturnAmount",
+                "max_return_amount",
+                Extractors.get("maxReturnAmount"),
+            ),
             ResponseProperty("returnText", "return_text", Extractors.get("returnText")),
-            ResponseProperty("discountAmount", "discount_amount", Extractors.get("discountAmount")),
-            ResponseProperty("discountedPrice", "discounted_price", Extractors.get("discountedPrice")),
+            ResponseProperty(
+                "discountAmount", "discount_amount", Extractors.get("discountAmount")
+            ),
+            ResponseProperty(
+                "discountedPrice", "discounted_price", Extractors.get("discountedPrice")
+            ),
         ],
         optional_properties=[],
     ),
     Promotion: R(
         required_properties=[
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
-            ResponseProperty("action", "action", Extractors.get_as_model("action", PromotionAction)),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
+            ResponseProperty(
+                "action", "action", Extractors.get_as_model("action", PromotionAction)
+            ),
         ],
         optional_properties=[],
     ),
@@ -1212,7 +1444,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
         required_properties=[
             ResponseProperty("productId", "product_id", Extractors.get("productId")),
             ResponseProperty("score", "score", Extractors.get("score")),
-            ResponseProperty("reviewCount", "review_count", Extractors.get("reviewCount")),
+            ResponseProperty(
+                "reviewCount", "review_count", Extractors.get("reviewCount")
+            ),
             ResponseProperty("likesCount", "likes_count", Extractors.get("likesCount")),
         ],
         optional_properties=[],
@@ -1220,20 +1454,32 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
     TimeSaleDetails: R(
         required_properties=[
             ResponseProperty("name", "name", Extractors.get("name")),
-            ResponseProperty("percentage", "percentage", Extractors.get_as("percentage", int)),
+            ResponseProperty(
+                "percentage", "percentage", Extractors.get_as("percentage", int)
+            ),
             ResponseProperty("price", "price", Extractors.get("price")),
             ResponseProperty("startTime", "start_time", Extractors.get("startTime")),
             ResponseProperty("endTime", "end_time", Extractors.get("endTime")),
             ResponseProperty("base", "base", Extractors.get("base")),
-            ResponseProperty("calculationStartTime", "calculation_start_time", Extractors.get("calculationStartTime")),
-            ResponseProperty("calculationEndTime", "calculation_end_time", Extractors.get("calculationEndTime")),
+            ResponseProperty(
+                "calculationStartTime",
+                "calculation_start_time",
+                Extractors.get("calculationStartTime"),
+            ),
+            ResponseProperty(
+                "calculationEndTime",
+                "calculation_end_time",
+                Extractors.get("calculationEndTime"),
+            ),
         ],
         optional_properties=[],
     ),
     ProductVariant: R(
         required_properties=[
             ResponseProperty("variantId", "variant_id", Extractors.get("variantId")),
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
             ResponseProperty("quantity", "quantity", Extractors.get("quantity")),
             ResponseProperty("size", "size", Extractors.get("size")),
             ResponseProperty("attributes", "attributes", Extractors.get("attributes")),
@@ -1246,7 +1492,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
         ],
         optional_properties=[
             ResponseProperty("baseFee", "base_fee", Extractors.get("baseFee")),
-            ResponseProperty("additionalFee", "additional_fee", Extractors.get("additionalFee")),
+            ResponseProperty(
+                "additionalFee", "additional_fee", Extractors.get("additionalFee")
+            ),
         ],
     ),
     VariationGrouping: R(
@@ -1259,29 +1507,51 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
     ),
     BuyerPromotion: R(
         required_properties=[
-            ResponseProperty("promotionId", "promotion_id", Extractors.get("promotionId")),
-            ResponseProperty("promotionType", "promotion_type", Extractors.get("promotionType")),
-            ResponseProperty("discountValue", "discount_value", Extractors.get("discountValue")),
+            ResponseProperty(
+                "promotionId", "promotion_id", Extractors.get("promotionId")
+            ),
+            ResponseProperty(
+                "promotionType", "promotion_type", Extractors.get("promotionType")
+            ),
+            ResponseProperty(
+                "discountValue", "discount_value", Extractors.get("discountValue")
+            ),
         ],
         optional_properties=[],
     ),
     FollowPromotion: R(
         required_properties=[
-            ResponseProperty("displayName", "display_name", Extractors.get("displayName")),
-            ResponseProperty("action", "action", Extractors.get_as_model("action", PromotionAction)),
+            ResponseProperty(
+                "displayName", "display_name", Extractors.get("displayName")
+            ),
+            ResponseProperty(
+                "action", "action", Extractors.get_as_model("action", PromotionAction)
+            ),
         ],
         optional_properties=[],
     ),
     RealCardReward: R(
         required_properties=[
-            ResponseProperty("rewardAmount", "reward_amount", Extractors.get("rewardAmount")),
-            ResponseProperty("hasActiveCard", "has_active_card", Extractors.get("hasActiveCard")),
+            ResponseProperty(
+                "rewardAmount", "reward_amount", Extractors.get("rewardAmount")
+            ),
+            ResponseProperty(
+                "hasActiveCard", "has_active_card", Extractors.get("hasActiveCard")
+            ),
             ResponseProperty("hasMvno", "has_mvno", Extractors.get("hasMvno")),
             ResponseProperty("rewardRate", "reward_rate", Extractors.get("rewardRate")),
             ResponseProperty("lpUri", "lp_uri", Extractors.get("lpUri")),
-            ResponseProperty("estimateRewardText", "estimate_reward_text", Extractors.get("estimateRewardText")),
-            ResponseProperty("disclaimerText", "disclaimer_text", Extractors.get("disclaimerText")),
-            ResponseProperty("showComponent", "show_component", Extractors.get("showComponent")),
+            ResponseProperty(
+                "estimateRewardText",
+                "estimate_reward_text",
+                Extractors.get("estimateRewardText"),
+            ),
+            ResponseProperty(
+                "disclaimerText", "disclaimer_text", Extractors.get("disclaimerText")
+            ),
+            ResponseProperty(
+                "showComponent", "show_component", Extractors.get("showComponent")
+            ),
         ],
         optional_properties=[],
     ),
@@ -1291,8 +1561,12 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
             ResponseProperty("title", "title", Extractors.get("title")),
             ResponseProperty("uri", "uri", Extractors.get("uri")),
             ResponseProperty("text", "text", Extractors.get("text")),
-            ResponseProperty("discountAmount", "discount_amount", Extractors.get("discountAmount")),
-            ResponseProperty("maxDiscount", "max_discount", Extractors.get("maxDiscount")),
+            ResponseProperty(
+                "discountAmount", "discount_amount", Extractors.get("discountAmount")
+            ),
+            ResponseProperty(
+                "maxDiscount", "max_discount", Extractors.get("maxDiscount")
+            ),
         ],
         optional_properties=[],
     ),
@@ -1300,16 +1574,24 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
         required_properties=[],
         optional_properties=[
             ResponseProperty("title", "title", Extractors.get("title")),
-            ResponseProperty("description", "description", Extractors.get("description")),
+            ResponseProperty(
+                "description", "description", Extractors.get("description")
+            ),
             ResponseProperty("keywords", "keywords", Extractors.get("keywords")),
         ],
     ),
     ProductPreOrder: R(
         required_properties=[
-            ResponseProperty("isPreOrder", "is_pre_order", Extractors.get("isPreOrder")),
+            ResponseProperty(
+                "isPreOrder", "is_pre_order", Extractors.get("isPreOrder")
+            ),
         ],
         optional_properties=[
-            ResponseProperty("expectedShipDate", "expected_ship_date", Extractors.get("expectedShipDate")),
+            ResponseProperty(
+                "expectedShipDate",
+                "expected_ship_date",
+                Extractors.get("expectedShipDate"),
+            ),
         ],
     ),
 }
