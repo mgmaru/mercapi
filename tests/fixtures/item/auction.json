@@ -1,0 +1,18 @@
+{
+  "data": {
+    "id": "m000000000001",
+    "status": "on_sale",
+    "name": "sample-auction-item",
+    "price": 1200,
+    "auction_info": {
+      "id": "100000001",
+      "start_time": 1756500000,
+      "total_bids": 3,
+      "initial_price": 300,
+      "highest_bid": 1200,
+      "state": "STATE_ONGOING",
+      "auction_type": "AUCTION_TYPE_NORMAL",
+      "expected_end_time": 1756700000
+    }
+  }
+}

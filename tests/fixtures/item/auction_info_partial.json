@@ -1,0 +1,12 @@
+{
+  "data": {
+    "id": "m000000000006",
+    "status": "on_sale",
+    "name": "sample-partial-auction-item",
+    "price": 1200,
+    "auction_info": {
+      "id": "100000001",
+      "highest_bid": 1200
+    }
+  }
+}
