@@ -1,0 +1,21 @@
+{
+  "result": "OK",
+  "meta": { "has_next": true },
+  "data": [
+    {
+      "id": "m000000000001",
+      "seller": { "id": 100000001, "name": "sample-seller-1" },
+      "status": "on_sale",
+      "name": "sample-item-1",
+      "price": 1200,
+      "pager_id": 9
+    },
+    {
+      "id": "m000000000002",
+      "seller": { "id": 100000001, "name": "sample-seller-1" },
+      "status": "on_sale",
+      "name": "sample-item-2",
+      "price": 3400
+    }
+  ]
+}
