@@ -74,6 +74,20 @@ class Mercapi:
         )
         return request
 
+    @staticmethod
+    def _raise_for_error_status(res: httpx.Response) -> None:
+        """Report an error status instead of parsing the error body.
+
+        Without this, a 401, 403, 429 or 5xx reaches the mapper as an
+        unexpected body and surfaces as a parse error, which hides both the
+        status and the reason. A caller cannot tell rate limiting apart from a
+        response format change, and so cannot back off.
+
+        A 404 is handled by each method before this is reached, because an
+        absent item or seller is an ordinary answer rather than a failure.
+        """
+        res.raise_for_status()
+
     async def search(
         self,
         query: str,
@@ -144,6 +158,7 @@ class Mercapi:
 
     async def _search_impl(self, request: SearchRequestData) -> SearchResults:
         res = await self._client.send(self._search(request))
+        self._raise_for_error_status(res)
         body = res.json()
         res = map_to_class(body, SearchResults)
         res._request = request
@@ -168,6 +183,7 @@ class Mercapi:
         res = await self._client.send(self._item(id_))
         if res.status_code == 404:
             return None
+        self._raise_for_error_status(res)
 
         body = res.json()
         return map_to_class(body["data"], Item)
@@ -191,6 +207,7 @@ class Mercapi:
         res = await self._client.send(self._profile(id_))
         if res.status_code == 404:
             return None
+        self._raise_for_error_status(res)
 
         body = res.json()
         return map_to_class(body["data"], Profile)
@@ -214,6 +231,7 @@ class Mercapi:
         res = await self._client.send(self._items(profile_id))
         if res.status_code == 404:
             return None
+        self._raise_for_error_status(res)
 
         body = res.json()
         return map_to_class(body, Items)
@@ -278,6 +296,7 @@ class Mercapi:
         )
         if res.status_code == 404:
             return None
+        self._raise_for_error_status(res)
 
         body = res.json()
         page = map_to_class(body, SellerItemsPage)
@@ -345,6 +364,7 @@ class Mercapi:
         res = await self._client.send(self._shop_product(product_id, view, image_type))
         if res.status_code == 404:
             return None
+        self._raise_for_error_status(res)
 
         body = res.json()
         return map_to_class(body, ShopProduct)
