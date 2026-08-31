@@ -12,7 +12,14 @@ from typing import List, Optional
 
 from mercapi.models.base import ResponseModel
 from mercapi.models.common import ItemCategorySummary
-from mercapi.models.item.data import ItemCondition, ShippingMethod, ShippingDuration, ShippingFromArea, ShippingPayer, ItemBrand
+from mercapi.models.item.data import (
+    ItemCondition,
+    ShippingMethod,
+    ShippingDuration,
+    ShippingFromArea,
+    ShippingPayer,
+    ItemBrand,
+)
 
 
 @dataclass
