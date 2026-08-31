@@ -61,7 +61,7 @@ interactions:
       x-platform:
       - web
     method: GET
-    uri: https://api.mercari.jp/items/get?id=m77200069010
+    uri: https://api.mercari.jp/items/get?id=m77200069010&include_auction=true
   response:
     content: "{\"result\":\"OK\",\"data\":{\"id\":\"m77200069010\",\"seller\":{\"id\":362164700,\"name\":\"nananao\",\"photo_url\":\"https://static.mercdn.net/images/member_photo_noimage.png\",\"photo_thumbnail_url\":\"https://static.mercdn.net/images/member_photo_noimage_thumb.png\",\"register_sms_confirmation\":\"yes\",\"register_sms_confirmation_at\":\"2018-03-24
       23:35:59\",\"created\":1521901729,\"num_sell_items\":640,\"ratings\":{\"good\":1217,\"normal\":3,\"bad\":0},\"num_ratings\":1220,\"score\":1217,\"is_official\":false,\"quick_shipper\":false,\"star_rating_score\":5},\"status\":\"on_sale\",\"name\":\"\u30A8\u30D0\u30E9

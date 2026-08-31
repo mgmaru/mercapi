@@ -11,7 +11,7 @@ interactions:
       x-platform:
       - web
     method: GET
-    uri: https://api.mercari.jp/items/get?id=m12871737078
+    uri: https://api.mercari.jp/items/get?id=m12871737078&include_auction=true
   response:
     content: "{\"result\":\"OK\",\"data\":{\"id\":\"m12871737078\",\"seller\":{\"id\":485869194,\"name\":\"adieusos\",\"photo_url\":\"https://static.mercdn.net/members/485869194.jpg?1652800373\",\"photo_thumbnail_url\":\"https://static.mercdn.net/thumb/members/485869194.jpg?1652800373\",\"register_sms_confirmation\":\"yes\",\"register_sms_confirmation_at\":\"2022-04-21
       16:25:50\",\"created\":1650525950,\"num_sell_items\":8,\"ratings\":{\"good\":7,\"normal\":0,\"bad\":0},\"num_ratings\":7,\"score\":7,\"is_official\":false,\"quick_shipper\":false,\"star_rating_score\":5},\"buyer\":{\"id\":333347420,\"name\":\"*\",\"register_sms_confirmation\":\"yes\"},\"status\":\"sold_out\",\"name\":\"DJ
