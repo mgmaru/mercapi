@@ -66,7 +66,7 @@ interactions:
       x-platform:
       - web
     method: GET
-    uri: https://api.mercari.jp/items/get?id=m94786104879
+    uri: https://api.mercari.jp/items/get?id=m94786104879&include_auction=true
   response:
     content: "{\"result\":\"OK\",\"data\":{\"id\":\"m94786104879\",\"seller\":{\"id\":362164700,\"name\":\"nananao\",\"photo_url\":\"https://static.mercdn.net/images/member_photo_noimage.png\",\"photo_thumbnail_url\":\"https://static.mercdn.net/images/member_photo_noimage_thumb.png\",\"register_sms_confirmation\":\"yes\",\"register_sms_confirmation_at\":\"2018-03-24
       23:35:59\",\"created\":1521901729,\"num_sell_items\":578,\"ratings\":{\"good\":1049,\"normal\":3,\"bad\":0},\"num_ratings\":1052,\"score\":1049,\"is_official\":false,\"quick_shipper\":false,\"star_rating_score\":5},\"status\":\"on_sale\",\"name\":\"DJ

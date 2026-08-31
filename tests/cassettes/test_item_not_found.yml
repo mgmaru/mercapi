@@ -11,7 +11,7 @@ interactions:
       x-platform:
       - web
     method: GET
-    uri: https://api.mercari.jp/items/get?id=m00000000000
+    uri: https://api.mercari.jp/items/get?id=m00000000000&include_auction=true
   response:
     content: "{\"result\":\"error\",\"errors\":[{\"code\":\"RecordNotFoundException\",\"message\":\"\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F\"}],\"meta\":{}}"
     headers:
