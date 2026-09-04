@@ -1,0 +1,21 @@
+{
+  "data": {
+    "id": "m000000000010",
+    "status": "on_sale",
+    "name": "sample-item-of-an-inactive-seller",
+    "price": 4200,
+    "seller": {
+      "id": 100000010,
+      "name": "sample-seller",
+      "num_sell_items": 13,
+      "num_ratings": 17,
+      "score": 0,
+      "star_rating_score": 5,
+      "is_official": false,
+      "quick_shipper": false,
+      "is_followable": true,
+      "is_blocked": false,
+      "is_inactive": true
+    }
+  }
+}

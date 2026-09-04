@@ -28,10 +28,16 @@ Rules
 | `item/auction_info_empty.json` | derived | `item/auction.json` | 2026-08-31 | an empty `auction_info` is preserved, not dropped |
 | `item/auction_info_unknown_shape.json` | derived | `item/auction.json` | 2026-08-31 | an unrecognised `auction_info` shape is preserved, not dropped |
 | `item/auction_info_partial.json` | derived | `item/auction.json` | 2026-08-31 | the properties that could be read survive a partial shape |
+| `item/seller_inactive.json` | observed | — | 2026-09-04 | `seller.is_inactive` is parsed when Mercari sets it |
+| `item/seller_active.json` | derived | `item/seller_inactive.json` | 2026-09-04 | `false` is an answer and survives as `False` |
+| `item/seller_without_is_inactive.json` | derived | `item/seller_inactive.json` | 2026-09-04 | an absent flag is `None`, never `False` |
 
 `observed` fixtures follow a response shape recorded during the Card Digger
 auction validation on 2026-08-31 against upstream commit
-`20ba68fd42677997c4c91b4e4eb17c1e7e387efa`. `derived` fixtures change only the
+`20ba68fd42677997c4c91b4e4eb17c1e7e387efa`, except
+`item/seller_inactive.json`, whose shape comes from the Card Digger
+`is_inactive` observation of 2026-09-04 (139 item detail responses, all of
+which carried `seller.is_inactive`). `derived` fixtures change only the
 values or the presence of a field of an observed fixture; no field name, nesting
 or type was invented. There is no `assumed` fixture.
 
@@ -66,3 +72,18 @@ only for an auction listing requested with `include_auction=true`:
 
 `start_time` and `expected_end_time` are epoch seconds, `state` and
 `auction_type` are tokens such as `STATE_ONGOING` and `AUCTION_TYPE_NORMAL`.
+
+The `seller` object of `GET /items/get` carries 18 properties, of which this
+model reads 17. `is_inactive` is a boolean and is present on every response
+observed so far; `region_code` is the one still unread.
+
+```text
+{ "id", "name", "created", "num_sell_items", "num_ratings", "ratings",
+  "score", "star_rating_score", "is_official", "quick_shipper",
+  "is_followable", "is_blocked", "is_inactive", "region_code",
+  "photo_url", "photo_thumbnail_url", "register_sms_confirmation",
+  "register_sms_confirmation_at" }
+```
+
+`GET /users/get_profile` does **not** carry `is_inactive`. It was looked for
+across all 37 of that response's properties and is not among them.

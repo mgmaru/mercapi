@@ -476,6 +476,9 @@ mapping_definitions: Dict[Type[ResponseModel], ResponseMappingDefinition] = {
                 "is_followable", "is_followable", Extractors.get("is_followable")
             ),
             ResponseProperty("is_blocked", "is_blocked", Extractors.get("is_blocked")),
+            ResponseProperty(
+                "is_inactive", "is_inactive", Extractors.get("is_inactive")
+            ),
         ],
     ),
     Seller.Ratings: R(
