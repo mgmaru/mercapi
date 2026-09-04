@@ -1,0 +1,20 @@
+{
+  "data": {
+    "id": "m000000000012",
+    "status": "on_sale",
+    "name": "sample-item-whose-seller-omits-the-flag",
+    "price": 2500,
+    "seller": {
+      "id": 100000012,
+      "name": "sample-seller",
+      "num_sell_items": 21,
+      "num_ratings": 37,
+      "score": 0,
+      "star_rating_score": 5,
+      "is_official": false,
+      "quick_shipper": false,
+      "is_followable": true,
+      "is_blocked": false
+    }
+  }
+}

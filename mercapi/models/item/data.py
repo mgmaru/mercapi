@@ -29,6 +29,15 @@ class Seller(ResponseModel):
     star_rating_score: int
     is_followable: bool
     is_blocked: bool
+    #: Mercari's own flag on the seller of this listing.
+    #:
+    #: ``Optional`` on purpose, unlike its neighbours: absent and ``False`` are
+    #: different answers, and a caller that cannot tell them apart would report
+    #: a seller Mercari said nothing about as one Mercari called active.
+    #:
+    #: Only the item detail endpoint carries it. The profile endpoint does not,
+    #: so it cannot be read from :class:`~mercapi.models.Profile`.
+    is_inactive: Optional[bool] = None
 
 
 @dataclass
