@@ -49,6 +49,8 @@ class SearchRequestData(RequestData):
         sort_by: "SearchRequestData.SortBy" = field(default=None)
         sort_order: "SearchRequestData.SortOrder" = field(default=None)
         exclude: str = ""
+        # Last, so that conditions built positionally keep their meaning.
+        seller_ids: List[str] = field(default_factory=list)
 
         def __post_init__(self):
             # Set defaults after initialization if not provided
@@ -101,7 +103,9 @@ class SearchRequestData(RequestData):
                 "sizeId": self.search_conditions.sizes,
                 "categoryId": self.search_conditions.categories,
                 "brandId": self.search_conditions.brands,
-                "sellerId": [],
+                # As text: that is the form observed to be honoured, and the
+                # form every `sellerId` in a search result arrives in.
+                "sellerId": [str(i) for i in self.search_conditions.seller_ids],
                 "priceMin": self.search_conditions.price_min,
                 "priceMax": self.search_conditions.price_max,
                 "itemConditionId": self.search_conditions.item_conditions,

@@ -106,6 +106,7 @@ class Mercapi:
         status: List[SearchRequestData.Status] = [],
         page_token: str = None,
         exclude: str = None,
+        seller_ids: List[str] = [],
     ) -> SearchResults:
         """Perform basic search and return list of items and metadata.
         This method reflects the action of using search bar at the top of the website.
@@ -131,6 +132,11 @@ class Mercapi:
         :param status: filter results by listing statuses (販売状況)
         :param page_token: used for paging results, provided in the response data
         :param exclude: Exclude items matching to string (除外キーワード)
+        :param seller_ids: only return listings of these sellers. With an empty
+            `query` this is a seller's whole shelf, and unlike
+            :func:`~mercapi.Mercapi.items_page` each result carries
+            `item_condition_id`. Combine with `status` to choose between what
+            is on sale and what was sold
         :return: List of search results (items) and metadata (e.g. total count)
         """
         request = SearchRequestData(
@@ -149,6 +155,7 @@ class Mercapi:
                 sort_by,
                 sort_order,
                 exclude,
+                seller_ids=seller_ids,
             ),
             page_token,
         )
