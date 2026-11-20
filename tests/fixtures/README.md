@@ -54,8 +54,8 @@ honoured, not how it behaves for every seller.
 
 `POST /v2/entities:search` takes the sellers to search within as
 `searchCondition.sellerId`, a list of text ids. A seller item from
-`GET /items/get_items` carries no condition under any name (40 property names
-observed on 2026-11-20, none of them a condition), so the search is the only
+`GET /items/get_items` carries no condition under any name (42 property names
+observed on 2026-11-20 across 60 items, none of them a condition), so the search is the only
 listing of a seller's shelf that says how worn each item is.
 
 `GET /items/get_items` returns:
