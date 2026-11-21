@@ -33,7 +33,11 @@ jobs:
   test:
     name: Unit test
     needs: lint
-    runs-on: ubuntu-latest
+    # Not ubuntu-latest. That label moved to Ubuntu 26.04, for which there is
+    # no Python 3.9 build, so the 3.9 job failed in setup-python before any
+    # test ran and fail-fast cancelled the other four. 24.04 is the newest
+    # image that has all five versions pyproject.toml declares.
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version:
