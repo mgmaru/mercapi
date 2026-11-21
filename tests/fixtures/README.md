@@ -31,6 +31,7 @@ Rules
 | `item/seller_inactive.json` | observed | — | 2026-09-04 | `seller.is_inactive` is parsed when Mercari sets it |
 | `item/seller_active.json` | derived | `item/seller_inactive.json` | 2026-09-04 | `false` is an answer and survives as `False` |
 | `item/seller_without_is_inactive.json` | derived | `item/seller_inactive.json` | 2026-09-04 | an absent flag is `None`, never `False` |
+| `search/by_seller.json` | observed | — | 2026-11-20 | a search limited to one seller returns that seller's listings, each with `itemConditionId` |
 
 `observed` fixtures follow a response shape recorded during the Card Digger
 auction validation on 2026-08-31 against upstream commit
@@ -41,7 +42,21 @@ which carried `seller.is_inactive`). `derived` fixtures change only the
 values or the presence of a field of an observed fixture; no field name, nesting
 or type was invented. There is no `assumed` fixture.
 
+`search/by_seller.json` follows the search result shape recorded on 2026-08-31
+and the Card Digger seller condition observation of 2026-11-20: one seller,
+`sellerId` sent as text with an empty keyword. Every listing returned was that
+seller's (117 of 117 on sale, 43 of 43 sold or trading) and every one carried
+`itemConditionId`. The 30 listings `GET /items/get_items` returned for each
+status were all among them. One seller, one run: it shows the filter is
+honoured, not how it behaves for every seller.
+
 ## Shapes
+
+`POST /v2/entities:search` takes the sellers to search within as
+`searchCondition.sellerId`, a list of text ids. A seller item from
+`GET /items/get_items` carries no condition under any name (42 property names
+observed on 2026-11-20 across 60 items, none of them a condition), so the search is the only
+listing of a seller's shelf that says how worn each item is.
 
 `GET /items/get_items` returns:
 
